@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>هوش مصنوعی WWXPRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5151E5;
+            --secondary: #72EDF2;
+            --bg-light: #f0f0f0;
+            --bg-dark: #2c2c2c;
+            --text-light: #ffffff;
+            --text-dark: #333333;
+            --bubble-user: #DCF8C6;
+            --bubble-bot: #ffffff;
+        }
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg-light);
+            transition: background 0.3s;
+        }
+        body.dark {
+            background: var(--bg-dark);
+        }
+        #chat-container {
+            width: 100%; max-width: 500px; margin: 40px auto;
+            background: var(--text-light);
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: background 0.3s;
+        }
+        body.dark #chat-container { background: #444; }/* Header */
+#chat-header {
+    background: var(--primary); color: var(--text-light);
+    padding: 15px; display: flex; justify-content: space-between; align-items: center;
+}
+#chat-header h1 { margin: 0; font-size: 1.4rem; }
+#mode-toggle {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-light); font-size: 1.2rem;
+}
+
+/* Messages */
+#messages {
+    flex: 1; padding: 15px; overflow-y: auto;
+    background: #ececec; transition: background 0.3s;
+}
+body.dark #messages { background: #555; }
+.message { display: flex; margin-bottom: 12px; opacity: 0; animation: fadeIn .5s forwards; }
+.message.user { justify-content: flex-end; }
+.message.bot { justify-content: flex-start; }
+.bubble {
+    max-width: 70%; padding: 10px 14px;
+    border-radius: 18px; position: relative; line-height: 1.4;
+    transition: background 0.3s, color 0.3s;
+}
+.user .bubble { background: var(--bubble-user); color: var(--text-dark); border-bottom-right-radius: 4px; }
+.bot .bubble { background: var(--bubble-bot); color: var(--text-dark); border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* Avatar */
+.avatar { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; margin: 0 8px; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Input area */
+#input-area {
+    display: flex; align-items: center;
+    padding: 10px 15px; border-top: 1px solid #ddd;
+    background: var(--text-light); transition: background 0.3s;
+}
+body.dark #input-area { background: #444; border-color: #666; }
+#userInput {
+    flex: 1; padding: 10px 14px; border: 1px solid #ccc;
+    border-radius: 20px; font-size: 1rem; outline: none;
+    transition: background 0.3s, color 0.3s, border 0.3s;
+}
+body.dark #userInput { background: #333; color: #eee; border-color: #555; }
+#sendBtn {
+    margin-left: 8px; padding: 10px 16px;
+    background: var(--primary); border: none; color: var(--text-light);
+    border-radius: 20px; cursor: pointer; font-size: 1rem;
+    transition: background 0.3s;
+}
+#sendBtn:disabled { background: #999; cursor: not-allowed; }
+
+/* Suggestions */
+#suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 15px 8px; }
+.suggestion {
+    background: var(--secondary); color: var(--text-dark);
+    padding: 6px 12px; border-radius: 12px; cursor: pointer;
+    transition: transform 0.2s;
+}
+.suggestion:hover { transform: scale(1.05); }
+
+/* Loading spinner */
+.loading { width: 16px; height: 16px; border: 2px solid #ccc;
+    border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite;
+    display: inline-block; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Article Image */
+.article-img { margin-top: 10px; border-radius: 12px; max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+/* Link styling */
+.article-link { display: inline-block; margin-top: 8px; text-decoration: none;
+    color: var(--primary); font-weight: 500; transition: color 0.3s;
+}
+.article-link:hover { color: var(--secondary); }
+
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-header">
+            <h1>هوش مصنوعی WWXPRO</h1>
+            <button id="mode-toggle" onclick="toggleMode()">🌙</button>
+        </div>
+        <div id="messages"></div>
+        <div id="suggestions"></div>
+        <div id="input-area">
+            <input type="text" id="userInput" placeholder="سوال خود را بنویسید..." onkeypress="if(event.key==='Enter') sendMessage()" />
+            <button id="sendBtn" onclick="sendMessage()">ارسال</button>
+        </div>
+    </div>  <script>
+        const suggestions = ['تهران', 'تاریخ ایران', 'تکنولوژی', 'نویسنده معروف'];
+        const suggestionsContainer = document.getElementById('suggestions');
+        suggestions.forEach(s => {
+            const btn = document.createElement('div');
+            btn.className = 'suggestion'; btn.textContent = s;
+            btn.onclick = () => sendMessage(s);
+            suggestionsContainer.appendChild(btn);
+        });
+
+        function toggleMode() {
+            document.body.classList.toggle('dark');
+            document.getElementById('mode-toggle').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        }
+
+        async function sendMessage(text) {
+            const input = document.getElementById('userInput');
+            const query = text || input.value.trim();
+            if (!query) return;
+            addMessage('user', query);
+            input.value = '';
+            setLoading(true);
+
+            const searchUrl = `https://fa.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+            const data = await fetch(searchUrl).then(r => r.json());
+            if (!data.query.search.length) {
+                addMessage('bot', 'هیچ مقاله‌ای پیدا نشد.'); setLoading(false); return;
+            }
+            const title = data.query.search[0].title;
+            const detailUrl = `https://fa.wikipedia.org/w/api.php?action=query&prop=extracts|pageimages&titles=${encodeURIComponent(title)}&format=json&exintro=1&explaintext=1&piprop=original&origin=*`;
+            const detail = await fetch(detailUrl).then(r => r.json());
+            const page = detail.query.pages[Object.keys(detail.query.pages)[0]];
+
+            let html = `<strong>${title}</strong><p>${page.extract}</p><a href='https://fa.wikipedia.org/wiki/${encodeURIComponent(title)}' target='_blank' class='article-link'>مشاهده در ویکی‌پدیا</a>`;
+            if (page.original?.source) html += `<img src='${page.original.source}' class='article-img' alt=''>`;
+            addMessage('bot', html);
+            setLoading(false);
+        }
+
+        function addMessage(sender, text) {
+            const container = document.getElementById('messages');
+            const msg = document.createElement('div'); msg.className = 'message ' + sender;
+            const avatar = document.createElement('div'); avatar.className = 'avatar';
+            const img = document.createElement('img');
+            img.src = sender==='user' ? 'https://i.pravatar.cc/40?img=5' : 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png';
+            avatar.appendChild(img);
+            const dot = document.createElement('div'); dot.className='bubble'; dot.innerHTML=text;
+            if(sender==='user'){ msg.appendChild(dot); msg.appendChild(avatar); }
+            else{ msg.appendChild(avatar); msg.appendChild(dot); }
+            container.appendChild(msg); container.scrollTop = container.scrollHeight;
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('sendBtn');
+            if (loading) { btn.disabled=true; btn.innerHTML=`در حال بارگذاری <span class='loading'></span>`; }
+            else { btn.disabled=false; btn.textContent='ارسال'; }
+        }
+    </script></body>
+</html>
